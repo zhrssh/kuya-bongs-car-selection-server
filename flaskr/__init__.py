@@ -2,10 +2,16 @@ import os
 from typing import Dict
 
 from flask import Flask
+from flask_cors import CORS, cross_origin
+
+from dotenv import load_dotenv
+load_dotenv()
 
 def create_app(test_config = None) -> Flask:
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+    cors = CORS(app, resources={r"*": {"origins": ["http://localhost:3001"]}})
+    app.config['CORS_HEADERS'] = 'Content-Type'
     app.config.from_mapping(
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
@@ -30,8 +36,12 @@ def create_app(test_config = None) -> Flask:
         """Used for health checking the app. Returns 200 if the app is healthy."""
         return "OK", 200
     
+    
     from . import db
     db.init_app(app)
+    
+    from . import admin
+    app.register_blueprint(admin.bp)
     
     return app
     

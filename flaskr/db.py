@@ -4,6 +4,10 @@ from datetime import datetime
 import click
 from flask import current_app, g
 
+import os
+import uuid
+from werkzeug.security import generate_password_hash
+
 def get_db():
     """Connect to the configured database. The connection is unique for each request and will be reused if this is called again."""
     if 'db' not in g:
@@ -26,8 +30,19 @@ def init_db():
     """Clear existing data and create new tables."""
     db = get_db()
     
+    # check if there is admin user set in env
+    if os.getenv('APP_ADMIN_USERNAME') is None or os.getenv('APP_ADMIN_PASSWORD') is None:
+        raise Exception('Admin username and password must be set in environment variables.')
+
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))
+        
+    # insert admin user
+    db.execute(
+        'INSERT INTO user (id, username, password) VALUES (?, ?, ?)',
+        (str(uuid.uuid4()), os.environ['APP_ADMIN_USERNAME'], generate_password_hash(os.environ['APP_ADMIN_PASSWORD']))
+    )
+    db.commit()
         
 @click.command('init-db')
 def init_db_command():

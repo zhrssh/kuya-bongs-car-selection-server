@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS cars;
 
 /* For admin credentials only */
 CREATE TABLE user (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL
 );
